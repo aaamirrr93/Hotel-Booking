@@ -45,27 +45,28 @@ model Hotel {
   }
 
   model Room{
-     id String @id @default(uuid())
-    title String
-    description String @db.LongText
-    bedCount Int @default(0)
-    guestCount Int @default(0)
-    bathroomCount Int @default(0)
-    kingBed Int @default(0)
-    queenBed Int @default(0)
-    image String
-    breakFastPrice Int
-    roomPrice Int
-    roomService Boolean @default(false)
-    TV Boolean @default(false)
-    balcony Boolean @default(false)
-    freeWifi Boolean @default(false)
-    oceanView Boolean @default(false)
-    forestView Boolean @default(false)
-    mountainView Boolean @default(false)
-    airCondition Boolean @default(false)
-    aoundProof Boolean @default(false)
-    hotelId String
+    id              String @id @default(uuid())
+    title           String
+    description     String @db.LongText
+    bedCount        Int @default(0)
+    guestCount      Int @default(0)
+    bathroomCount   Int @default(0)
+    kingBed         Int @default(0)
+    queenBed        Int @default(0)
+    image           String
+    breakFastPrice  Int
+    roomPrice       Int
+    roomService     Boolean @default(false)
+    TV              Boolean @default(false)
+    balcony         Boolean @default(false)
+    freeWifi        Boolean @default(false)
+    cityView        Boolean @default(false)
+    oceanView       Boolean @default(false)
+    forestView      Boolean @default(false)
+    mountainView    Boolean @default(false)
+    airCondition    Boolean @default(false)
+    soundProof      Boolean @default(false)
+    hotelId         String
 
     Hotel Hotel? @relation(fields: [hotelId], references: [id])
 
