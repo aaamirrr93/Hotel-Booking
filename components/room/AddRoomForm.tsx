@@ -112,6 +112,7 @@ const AddRoomForm = ({ hotel, room, handleDialogOpen }: AddRoomFormProps) => {
           handleDialogOpen();
         })
         .catch((err) => {
+          console.log(room.id);
           console.log(err);
           toast({
             variant: "destructive",
@@ -516,7 +517,7 @@ const AddRoomForm = ({ hotel, room, handleDialogOpen }: AddRoomFormProps) => {
                   <FormItem>
                     <FormLabel>breakFast Price in USD</FormLabel>
                     <FormDescription>
-                      How many beds are available in this room.
+                      State the price for staying in this room for 24hrs.
                     </FormDescription>
                     <FormControl>
                       <Input type="number" min={0} max={8} {...field} />
