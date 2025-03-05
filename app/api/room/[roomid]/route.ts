@@ -45,13 +45,13 @@ export async function DELETE(
     if (!userId) {
       return new NextResponse("UnAuthorized", { status: 401 });
     }
-    const room = await prismadb.room.delete({
+    const hotel = await prismadb.room.delete({
       where: {
         id: params.roomId,
       },
     });
 
-    return NextResponse.json(room);
+    return NextResponse.json(hotel);
   } catch (error) {
     console.log("Error at /api/room/roomId DELETE", error);
     return new NextResponse("Internal Server Error", { status: 500 });
