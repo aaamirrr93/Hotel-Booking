@@ -27,12 +27,13 @@ import {
   Users,
   UtensilsCrossed,
   VolumeX,
+  Wand2,
   Wifi,
 } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,19 +47,24 @@ import axios from "axios";
 import { toast, useToast } from "@/hooks/use-toast";
 import { DatePickerWithRange } from "./DateRangePicker";
 import { DateRange } from "react-day-picker";
-import { differenceInCalendarDays, set } from "date-fns";
+import { differenceInCalendarDays, eachDayOfInterval, set } from "date-fns";
 import { Checkbox } from "../ui/checkbox";
+import { useAuth } from "@clerk/nextjs";
+import useBookRoom from "@/hooks/useBookRoom";
 
 interface RoomCardProps {
-  hotel: Hotel & {
+  hotel?: Hotel & {
     rooms: Room[];
   };
   room: Room;
   bookings?: Booking[];
 }
 
-const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
+const RoomCard = ({ bookings = [], hotel, room }: RoomCardProps) => {
+  const { setRoomData, paymentIntentId, setclientSecret, setPaymentIntentId } =
+    useBookRoom();
   const [isLoading, setIsLoading] = useState(false);
+  const [bookingIsLoading, setBookingIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
   const [totalPrice, setTotalPrice] = useState(room.roomPrice);
@@ -68,6 +74,7 @@ const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const userId = useAuth();
   const isHotelDetailsPage = pathname.includes("hotel-details");
 
   useEffect(() => {
@@ -89,6 +96,24 @@ const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
       }
     }
   }, [date, room.roomPrice, includeBreakFast]);
+
+  const disabledDates = useMemo(() => {
+    let dates: Date[] = [];
+
+    const roomBookings = bookings.filter(
+      (booking) => booking.roomId === room.id
+    );
+
+    roomBookings.forEach((booking) => {
+      const range = eachDayOfInterval({
+        start: new Date(booking.startDate),
+        end: new Date(booking.endDate),
+      });
+
+      dates = [...dates, ...range];
+    });
+    return dates;
+  }, [bookings]);
 
   const handleDialogOpen = () => {
     setOpen((prev) => !prev);
@@ -126,6 +151,80 @@ const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
           description: "Somethiong went wrong",
         });
       });
+  };
+
+  const handleBookRoom = () => {
+    if (!userId)
+      return toast({
+        variant: "destructive",
+        description: "Oops!! Make sure you are logged in",
+      });
+
+    if (!hotel?.userId)
+      return toast({
+        variant: "destructive",
+        description: "Somethiong went wrong, refresh the page and try again",
+      });
+
+    if (date?.from && date?.to) {
+      setBookingIsLoading(true);
+
+      const bookingRoomData = {
+        room,
+        totalPrice,
+        breakFastIncluded: includeBreakFast,
+        startDate: date.from,
+        endDate: date.to,
+      };
+
+      setRoomData(bookingRoomData);
+
+      fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          booking: {
+            hotelOwnerId: hotel.userId,
+            hotelId: hotel.id,
+            roomId: room.id,
+            startDate: date.from,
+            endDate: date.to,
+            breakFastIncluded: includeBreakFast,
+            totalPrice: totalPrice,
+          },
+          payment_intent_id: paymentIntentId,
+        }),
+      })
+        .then(async (res) => {
+          setBookingIsLoading(false);
+          if (res.status === 401) {
+            router.push("/login");
+          }
+
+          return res.json();
+        })
+        .then((data) => {
+          console.log("191 line : ", data.clientSecret);
+          console.log("192 line : ", data.paymentIntentId);
+          setclientSecret(data.clientSecret);
+          setPaymentIntentId(data.paymentIntentId);
+          router.push("/book-room");
+        })
+        .catch((error) => {
+          console.log("Error:", error);
+          toast({
+            variant: "destructive",
+            description: `ERROR! ${error.message}`,
+          });
+        });
+    } else {
+      toast({
+        variant: "destructive",
+        description: "Oops!! Please select date",
+      });
+    }
   };
 
   return (
@@ -252,7 +351,11 @@ const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
               <div className="mb-2">
                 Select days that you will spend in this room
               </div>
-              <DatePickerWithRange date={date} setDate={setDate} />
+              <DatePickerWithRange
+                date={date}
+                setDate={setDate}
+                disabledDates={disabledDates}
+              />
             </div>
             {room.breakFastPrice > 0 && (
               <div className="">
@@ -274,6 +377,18 @@ const RoomCard = ({ bookings, hotel, room }: RoomCardProps) => {
               Total Price: <span className="font-bold">${totalPrice}</span> for{" "}
               <span className="font-bold">{days} Days</span>
             </div>
+            <Button
+              disabled={bookingIsLoading}
+              onClick={() => handleBookRoom()}
+              type="button"
+            >
+              {bookingIsLoading ? (
+                <Loader2 className="mr-2 h-4 w-4" />
+              ) : (
+                <Wand2 className="mr-2 h-4 w-4" />
+              )}
+              {bookingIsLoading ? "Loading..." : "Book Room"}
+            </Button>
           </div>
         ) : (
           <div className="flex w-full justify-between">

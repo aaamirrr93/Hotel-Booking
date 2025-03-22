@@ -78,17 +78,18 @@ model Hotel {
   model Booking {
     id String @id @default(uuid())
     userName String
+    userEmail String
     userId String
     roomId String
     hotelId String
     hotelOwnerId String
     startDate DateTime
     endDate DateTime
-    breakFasrIncluded Boolean
+    breakFastIncluded Boolean
     currency String
-    totalPrice Int
+    totalPrice Float
     paymentStatus Boolean @default(false)
-    paymentIntentId String @unique
+    paymentIntentId String? @unique
     bookedAt DateTime @default(now())
 
 

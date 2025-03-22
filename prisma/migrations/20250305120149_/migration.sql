@@ -66,7 +66,7 @@ CREATE TABLE `Booking` (
     `hotelOwnerId` VARCHAR(191) NOT NULL,
     `startDate` DATETIME(3) NOT NULL,
     `endDate` DATETIME(3) NOT NULL,
-    `breakFasrIncluded` BOOLEAN NOT NULL,
+    `breakFastIncluded` BOOLEAN NOT NULL,
     `currency` VARCHAR(191) NOT NULL,
     `totalPrice` INTEGER NOT NULL,
     `paymentStatus` BOOLEAN NOT NULL DEFAULT false,
