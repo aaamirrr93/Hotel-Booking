@@ -16,12 +16,49 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Terminal } from "lucide-react";
+import { Booking } from "@prisma/client";
+import { endOfDay, isWithinInterval, startOfDay } from "date-fns";
 
 interface RoomPaymentFormProps {
   clientSecret: string;
   handleSetPaymentSuccess: (value: boolean) => void;
 }
 
+type DateRangeType = {
+  startDate: Date;
+  endDate: Date;
+};
+
+const hasOverlap = (
+  startDate: Date,
+  endDate: Date,
+  dateRange: DateRangeType[]
+) => {
+  const targetInterval = {
+    start: startOfDay(new Date(startDate)),
+    end: endOfDay(new Date(endDate)),
+  };
+
+  for (const range of dateRange) {
+    const rangeStart = startOfDay(new Date(range.startDate));
+    const rangeEnd = endOfDay(new Date(range.endDate));
+
+    if (
+      isWithinInterval(targetInterval.start, {
+        start: rangeStart,
+        end: rangeEnd,
+      }) ||
+      isWithinInterval(targetInterval.end, {
+        start: rangeStart,
+        end: rangeEnd,
+      }) ||
+      (targetInterval.start < rangeStart && targetInterval.end > rangeEnd)
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
 const RoomPaymentForm = ({
   clientSecret,
   handleSetPaymentSuccess,
@@ -46,7 +83,36 @@ const RoomPaymentForm = ({
     if (!stripe || !elements || !bookingRoomData) return;
 
     try {
-      // date over taps
+      // date overlaps
+      const bookings = await axios.get(
+        `/api/booking/${bookingRoomData.room.hotelId}`
+      );
+
+      const roomBookingDates = bookings.data.map((booking: Booking) => {
+        return {
+          startDate: booking.startDate,
+          endDate: booking.endDate,
+        };
+      });
+
+      const overlapFound = hasOverlap(
+        bookingRoomData.startDate,
+        bookingRoomData.endDate,
+        roomBookingDates
+      );
+
+      if (overlapFound) {
+        setIsLoading(false);
+        toast({
+          title: "Error",
+          description:
+            "Oops! Some of the days you are to book habe already been reserved. Please go back and select different dates or rooms.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       stripe
         .confirmPayment({
           elements,
