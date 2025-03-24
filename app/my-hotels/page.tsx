@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // Add this at the top
+
 import { getHotelsByUserId } from "@/actions/getHotelsByUserId";
 import HotelList from "@/components/hotel/HotelList";
 import React from "react";
