@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Container from "@/components/container";
 import { Toaster } from "@/components/ui/toaster";
 import LocationFilter from "@/components/LocationFilter";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Stay Savvy",
@@ -32,10 +33,12 @@ export default function RootLayout({
             <Toaster />
             <main className="flex flex-col min-h-screen bg-secondary">
               <NavBar />
-              <LocationFilter />
-              <section className="flex-grow">
-                <Container>{children}</Container>
-              </section>
+              <Suspense fallback={<div>Loading...</div>}>
+                <LocationFilter />
+                <section className="flex-grow">
+                  <Container>{children}</Container>
+                </section>
+              </Suspense>
             </main>
           </ThemeProvider>
         </body>
