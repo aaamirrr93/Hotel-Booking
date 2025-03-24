@@ -24,23 +24,24 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className="">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Toaster />
-            <main className="flex flex-col min-h-screen bg-secondary">
-              <NavBar />
-              <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster />
+              <main className="flex flex-col min-h-screen bg-secondary">
+                <NavBar />
+
                 <LocationFilter />
                 <section className="flex-grow">
                   <Container>{children}</Container>
                 </section>
-              </Suspense>
-            </main>
-          </ThemeProvider>
+              </main>
+            </ThemeProvider>
+          </Suspense>
         </body>
       </html>
     </ClerkProvider>
