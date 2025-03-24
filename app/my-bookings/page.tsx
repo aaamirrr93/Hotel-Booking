@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // Add this at the top
+
 import { getBookingsByUserId } from "@/actions/getBookingByUserId";
 import { getBookingsByHotelOwnerId } from "@/actions/getBookingsByHotelOwnerId";
 import MyBookingsClient from "@/components/booking/MyBookingsClient";
