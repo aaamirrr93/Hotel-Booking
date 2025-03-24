@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // Add this at the top
+
 import { getBookings } from "@/actions/getBookings";
 import { getHotelById } from "@/actions/getHotelById";
 import HotelDetailsClient from "@/components/hotel/HotelDetailsClient";
